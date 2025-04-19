@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding-top: 50px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .qr-preview {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .qr-img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+        }
+        .dark-mode {
+            background: #121212 !important;
+            color: #ffffff !important;
+        }
+        .dark-mode .form-control,
+        .dark-mode .btn {
+            background-color: #1e1e1e;
+            color: white;
+            border-color: #333;
+        }
+        .dark-mode .qr-img {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        #errorMessage {
+            display: none;
+            color: red;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="m-0">QR Code Generator</h1>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <textarea id="qrData" class="form-control mb-3" placeholder="Enter your text here..."></textarea>
+                <button class="btn btn-primary w-100 mb-2" onclick="generateQR()">Generate QR Code</button>
+                <div id="errorMessage">Error: Could not generate QR Code. Please try again or check the input length.</div>
+            </div>
+        </div>
+        <div class="qr-preview" id="qrResult" style="display: none;">
+            <h4 class="mt-4">Your QR Code:</h4>
+            <img id="qrImage" class="qr-img mt-2" src="" alt="QR Code">
+            <div class="mt-3">
+                <button class="btn btn-success" onclick="downloadQR()">Download QR Code</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            const data = document.getElementById("qrData").value.trim();
+            const errorMessage = document.getElementById("errorMessage");
+            const qrResult = document.getElementById("qrResult");
+            const img = document.getElementById("qrImage");
+
+            if (!data) {
+                errorMessage.textContent = "Please enter some text.";
+                errorMessage.style.display = 'block';
+                qrResult.style.display = 'none';
+                return;
+            }
+
+            errorMessage.style.display = 'none';  // reset
+            qrResult.style.display = 'none'; // hide result before trying
+
+            const qrUrl = `/generate_qr?data=` + encodeURIComponent(data);
+
+            // Create a new image to catch load/error
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                img.src = qrUrl;
+                qrResult.style.display = 'block';
+            };
+            tempImg.onerror = () => {
+                errorMessage.textContent = "Error: Could not generate QR Code. The input may be too long.";
+                errorMessage.style.display = 'block';
+                qrResult.style.display = 'none';
+            };
+            tempImg.src = qrUrl;
+        }
+
+        function downloadQR() {
+            const img = document.getElementById("qrImage");
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = 'qr_code.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+</html>
